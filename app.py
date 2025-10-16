@@ -23,9 +23,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files directories for each story
-app.mount("/static/store_one", StaticFiles(directory="store_one"), name="store_one")
-app.mount("/static/store_two", StaticFiles(directory="store_two"), name="store_two")
+# Mount media folder for all static files
+app.mount("/media", StaticFiles(directory="media"), name="media")
 
 
 class StoryRequest(BaseModel):
@@ -42,7 +41,7 @@ def get_all_page_images(page_number: int, story_folder: str) -> list:
     while True:
         found = False
         for ext in possible_extensions:
-            image_path = os.path.join(story_folder, f"page_{page_number}_image_{image_index}{ext}")
+            image_path = os.path.join("media", story_folder, f"page_{page_number}_image_{image_index}{ext}")
             if os.path.exists(image_path):
                 images.append(f"page_{page_number}_image_{image_index}{ext}")
                 found = True
@@ -95,7 +94,7 @@ async def generate_story(request: StoryRequest, req: Request):
         images = get_all_page_images(page_number, story_folder)
         
         # Build full URLs for all images
-        image_paths = [f"{base_url}/static/{story_folder}/{img}" for img in images]
+        image_paths = [f"{base_url}/media/{story_folder}/{img}" for img in images]
         
         response_pages.append({
             "page_number": page_number,
