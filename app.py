@@ -4,8 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 import os
-from stroy_one import story_one
-from stroy_two import story_two
+from stroy_one import story_male_one
+from stroy_two import story_male_two
+from stroy_one import story_female_one
+from stroy_two import story_female_two
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -30,6 +32,7 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 class StoryRequest(BaseModel):
     name: str
     story_id: int
+    gender: str
 
 def get_all_page_images(page_number: int, story_folder: str) -> list:
     """Get all images for a specific page"""
@@ -71,8 +74,8 @@ async def generate_story(request: StoryRequest, req: Request):
     """
     # Map story_id to story function and folder
     story_mapping = {
-        1: {"function": story_one, "folder": "store_one"},
-        2: {"function": story_two, "folder": "store_two"}
+        1: {"function": story_male_one if request.gender == "male" else story_female_one, "folder": f"store_one/{request.gender}"},
+        2: {"function": story_male_two if request.gender == "male" else story_female_two, "folder": f"store_two/{request.gender}"}
     }
     
     if request.story_id not in story_mapping:
