@@ -1,13 +1,17 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import uvicorn
 import os
+from datetime import datetime
+from pathlib import Path
 from stroy_one import story_male_one
 from stroy_two import story_male_two
 from stroy_one import story_female_one
 from stroy_two import story_female_two
+from pptx_replacer import PowerPointReplacer
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -30,6 +34,11 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 
 
 class StoryRequest(BaseModel):
+    name: str
+    story_id: int
+    gender: str
+
+class PptxRequest(BaseModel):
     name: str
     story_id: int
     gender: str
@@ -111,12 +120,103 @@ async def generate_story(request: StoryRequest, req: Request):
         "pages": response_pages
     }
 
+@app.post("/generate-pptx")
+async def generate_pptx(request: PptxRequest, req: Request):
+    """
+    Generate a personalized PowerPoint storybook
+    
+    Args:
+        name: The character name to use in the story
+        story_id: The story identifier (e.g., 1 for story_one, 2 for story_two)
+        gender: The gender (male or female)
+    
+    Returns:
+        A JSON response with the download URL for the generated PPTX
+    """
+    try:
+        # Validate story_id
+        if request.story_id not in [1, 2]:
+            raise HTTPException(status_code=404, detail=f"Story with id '{request.story_id}' not found")
+        
+        # Validate gender
+        if request.gender.lower() not in ["male", "female"]:
+            raise HTTPException(status_code=400, detail="Gender must be 'male' or 'female'")
+        
+        # Map story_id and gender to template files
+        template_mapping = {
+            (1, "male"): "story_book/Storybook_Template_1_male.pptx",
+            (1, "female"): "story_book/Storybook_Template_1_female.pptx",
+            (2, "male"): "story_book/Storybook_Template_2_male.pptx",
+            (2, "female"): "story_book/Storybook_Template_2_female.pptx"
+        }
+        
+        # Get the appropriate template based on story_id and gender
+        template_key = (request.story_id, request.gender.lower())
+        template_path = template_mapping.get(template_key)
+        
+        if not template_path:
+            raise HTTPException(status_code=400, detail=f"No template found for story_id={request.story_id} and gender={request.gender}")
+        
+        # Check if template exists
+        if not os.path.exists(template_path):
+            raise HTTPException(status_code=500, detail=f"Template file not found: {template_path}")
+        
+        # Create timestamp for unique folder name
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Create folder name: name_gender_timestamp (e.g., emma_male_20251030_143025)
+        folder_name = f"{request.name.lower()}_{request.gender.lower()}_{timestamp}"
+        output_dir = Path("media") / folder_name
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create replacer instance
+        replacer = PowerPointReplacer(template_path)
+        
+        # Prepare replacements
+        replacements = {
+            '{{CHILD_NAME}}': request.name,
+            '{{CHILD_NAME_UPPER}}': request.name.upper()
+        }
+        
+        # Generate output filename
+        output_filename = f"{request.name}_Storybook.pptx"
+        output_path = output_dir / output_filename
+        
+        # Replace text and save
+        created_file = replacer.replace_text(replacements, str(output_path))
+        
+        # Get base URL from request
+        base_url = str(req.base_url).rstrip('/')
+        
+        # Build download URL
+        download_url = f"{base_url}/media/{folder_name}/{output_filename}"
+        
+        return {
+            "success": True,
+            "message": "PowerPoint generated successfully",
+            "name": request.name,
+            "story_id": request.story_id,
+            "gender": request.gender,
+            "download_url": download_url,
+            "status": "success",
+            "status_code": 200
+        }
+    
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating PowerPoint: {str(e)}")
+
 @app.get("/")
 async def root():
     return {
         "message": "Story Generator API",
-        "usage": "POST /generate-story with {name: 'your_name', story_id: 1 or 2}",
-        "available_stories": [1, 2]
+        "endpoints": {
+            "generate_story": "POST /generate-story with {name: 'your_name', story_id: 1 or 2, gender: 'male' or 'female'}",
+            "generate_pptx": "POST /generate-pptx with {name: 'your_name', story_id: 1 or 2, gender: 'male' or 'female'}"
+        },
+        "available_stories": [1, 2],
+        "available_genders": ["male", "female"]
     }
 
 if __name__ == "__main__":
