@@ -189,16 +189,15 @@ async def generate_pptx(request: PptxRequest, req: Request):
         # Convert pptx to pdf
         pdf_path = pptx_to_pdf(str(output_path))
 
-
-
-
+        # Extract just the PDF filename from the full path
+        pdf_filename = Path(pdf_path).name
 
         # Get base URL from request
         base_url = str(req.base_url).rstrip('/')
         
         # Build download URL
         download_url = f"{base_url}/media/{folder_name}/{output_filename}"
-        download_url_pdf = f"{base_url}/media/{folder_name}/{pdf_path}"
+        download_url_pdf = f"{base_url}/media/{folder_name}/{pdf_filename}"
         
         return {
             "success": True,
