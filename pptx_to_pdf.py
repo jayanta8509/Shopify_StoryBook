@@ -129,25 +129,25 @@ def _convert_libreoffice(pptx_path, output_path):
         )
 
 
-# Example usage
-if __name__ == "__main__":
-    import sys
+# # Example usage
+# if __name__ == "__main__":
+#     import sys
     
-    # Single file conversion
-    print("Platform:", platform.system())
-    print("-" * 50)
+#     # Single file conversion
+#     print("Platform:", platform.system())
+#     print("-" * 50)
     
-    try:
-        # Example 1: Convert single file
-        pdf_path = pptx_to_pdf("Storybook_Template_1_female.pptx")
-        print(f"\nSuccess! PDF saved to: {pdf_path}")
+#     try:
+#         # Example 1: Convert single file
+#         pdf_path = pptx_to_pdf("Storybook_Template_1_female.pptx")
+#         print(f"\nSuccess! PDF saved to: {pdf_path}")
         
-        # Example 2: Convert with custom output path
-        # pdf_path = pptx_to_pdf("input.pptx", "output/converted.pdf")
+#         # Example 2: Convert with custom output path
+#         # pdf_path = pptx_to_pdf("input.pptx", "output/converted.pdf")
         
-        # Example 3: Batch convert all PPTX files in a directory
-        # results = batch_convert("./presentations", "./pdfs")
+#         # Example 3: Batch convert all PPTX files in a directory
+#         # results = batch_convert("./presentations", "./pdfs")
         
-    except Exception as e:
-        print(f"\nError: {e}")
-        sys.exit(1)
+#     except Exception as e:
+#         print(f"\nError: {e}")
+#         sys.exit(1)

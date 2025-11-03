@@ -12,6 +12,7 @@ from stroy_two import story_male_two
 from stroy_one import story_female_one
 from stroy_two import story_female_two
 from pptx_replacer import PowerPointReplacer
+from pptx_to_pdf import pptx_to_pdf
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -184,12 +185,20 @@ async def generate_pptx(request: PptxRequest, req: Request):
         
         # Replace text and save
         created_file = replacer.replace_text(replacements, str(output_path))
-        
+
+        # Convert pptx to pdf
+        pdf_path = pptx_to_pdf(str(output_path))
+
+
+
+
+
         # Get base URL from request
         base_url = str(req.base_url).rstrip('/')
         
         # Build download URL
         download_url = f"{base_url}/media/{folder_name}/{output_filename}"
+        download_url_pdf = f"{base_url}/media/{folder_name}/{pdf_path}"
         
         return {
             "success": True,
@@ -198,6 +207,7 @@ async def generate_pptx(request: PptxRequest, req: Request):
             "story_id": request.story_id,
             "gender": request.gender,
             "download_url": download_url,
+            "download_url_pdf": download_url_pdf,
             "status": "success",
             "status_code": 200
         }
