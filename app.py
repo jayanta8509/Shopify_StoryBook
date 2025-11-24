@@ -198,7 +198,7 @@ async def generate_pptx(request: PptxRequest, req: Request):
         # Replace text and save
         created_file = replacer.replace_text(replacements, str(output_path))
 
-        created_file_cover = replacer.replace_text(replacements, str(output_path_cover))
+        created_file_cover = replacer_cover.replace_text(replacements, str(output_path_cover))
 
         # Convert pptx to pdf
         pdf_path = pptx_to_pdf(str(output_path))
