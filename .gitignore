@@ -1,5 +1,6 @@
 env
 __pycache__
 story_book
+Storybook_Template_1_male.pptx
 # nohup uvicorn app:app --host 0.0.0.0 --port 8000 --workers 3 > app.log 2>&1 &
 

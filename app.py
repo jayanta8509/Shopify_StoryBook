@@ -150,10 +150,18 @@ async def generate_pptx(request: PptxRequest, req: Request):
             (2, "male"): "story_book/Storybook_Template_2_male.pptx",
             (2, "female"): "story_book/Storybook_Template_2_female.pptx"
         }
+
+        template_cover_mapping = {
+            (1, "male"): "story_book/cover/Storybook_cover_1_male.pptx",
+            (1, "female"): "story_book/Storybook_cover_1_female.pptx",
+            (2, "male"): "story_book/Storybook_cover_2_male.pptx",
+            (2, "female"): "story_book/Storybook_cover_2_female.pptx"
+        }
         
         # Get the appropriate template based on story_id and gender
         template_key = (request.story_id, request.gender.lower())
         template_path = template_mapping.get(template_key)
+        template_path_cover = template_cover_mapping.get(template_key)
         
         if not template_path:
             raise HTTPException(status_code=400, detail=f"No template found for story_id={request.story_id} and gender={request.gender}")
@@ -172,6 +180,7 @@ async def generate_pptx(request: PptxRequest, req: Request):
         
         # Create replacer instance
         replacer = PowerPointReplacer(template_path)
+        replacer_cover =  PowerPointReplacer(template_path_cover)
         
         # Prepare replacements
         replacements = {
@@ -183,14 +192,22 @@ async def generate_pptx(request: PptxRequest, req: Request):
         output_filename = f"{request.name}_Storybook.pptx"
         output_path = output_dir / output_filename
         
+        output_filename_cover = f"{request.name}_cover_Storybook.pptx"
+        output_path_cover = output_dir / output_filename_cover
+
         # Replace text and save
         created_file = replacer.replace_text(replacements, str(output_path))
+
+        created_file_cover = replacer.replace_text(replacements, str(output_path_cover))
 
         # Convert pptx to pdf
         pdf_path = pptx_to_pdf(str(output_path))
 
+        pdf_path_cover = pptx_to_pdf(str(output_path_cover))
+
         # Extract just the PDF filename from the full path
         pdf_filename = Path(pdf_path).name
+        pdf_filename_cover = Path(pdf_path_cover).name
 
         # Get base URL from request
         base_url = str(req.base_url).rstrip('/')
@@ -198,6 +215,9 @@ async def generate_pptx(request: PptxRequest, req: Request):
         # Build download URL
         download_url = f"{base_url}/media/{folder_name}/{output_filename}"
         download_url_pdf = f"{base_url}/media/{folder_name}/{pdf_filename}"
+
+        download_cover_url = f"{base_url}/media/{folder_name}/{output_filename_cover}"
+        download_cover_url_pdf = f"{base_url}/media/{folder_name}/{pdf_filename_cover}"
         
         return {
             "success": True,
@@ -207,6 +227,8 @@ async def generate_pptx(request: PptxRequest, req: Request):
             "gender": request.gender,
             "download_url": download_url,
             "download_url_pdf": download_url_pdf,
+            "download_cover_url": download_cover_url,
+            "download_cover_url_pdf": download_cover_url_pdf,
             "status": "success",
             "status_code": 200
         }
