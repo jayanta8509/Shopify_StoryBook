@@ -184,7 +184,7 @@ async def generate_pptx(request: PptxRequest, req: Request):
         
         # Prepare replacements
         replacements = {
-            '{{CHILD_NAME}}': request.name,
+            '{{Child_Name}}': request.name,
             '{{CHILD_NAME_UPPER}}': request.name.upper()
         }
         
