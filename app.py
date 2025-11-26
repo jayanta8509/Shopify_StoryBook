@@ -153,9 +153,9 @@ async def generate_pptx(request: PptxRequest, req: Request):
 
         template_cover_mapping = {
             (1, "male"): "story_book/cover/Storybook_cover_1_male.pptx",
-            (1, "female"): "story_book/Storybook_cover_1_female.pptx",
-            (2, "male"): "story_book/Storybook_cover_2_male.pptx",
-            (2, "female"): "story_book/Storybook_cover_2_female.pptx"
+            (1, "female"): "story_book/cover/Storybook_cover_1_female.pptx",
+            (2, "male"): "story_book/cover/Storybook_cover_2_male.pptx",
+            (2, "female"): "story_book/cover/Storybook_cover_2_female.pptx"
         }
         
         # Get the appropriate template based on story_id and gender
